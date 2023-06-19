@@ -133,7 +133,7 @@ class ExplorerWin(ListPanel):
         self._ismenu, self.varname, self.varval, self.vartype, self.doc = proc.get_variable()
 
         # Init all Inspectors
-        self.inspect = Inspect(self.varval, self.varname, self.vartype)
+        self.inspect = Inspect(self.sock, self.varval, self.varname, self.vartype)
         self.class_win = ClassWin(self.app, self.sock, self.logger, self.varval, self.varname)
         self.view = Viewer(self.app, self.varval, self.varname)
         if self.doc:
@@ -170,12 +170,22 @@ class ExplorerWin(ListPanel):
                     ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
 
         elif (self.vartype == 'ndarray') and (len(self.varval.shape) == 1):
-            return [('Plot', 'self.inspect.plot1D()'),
+            return [('Less', "self.inspect.display('less')"),
+                    ('Plot', 'self.inspect.plot1D()'),
                     ('Save', 'self.menu_save()'),
                     ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
 
         elif (self.vartype == 'ndarray') and (len(self.varval.shape) == 2):
-            return [('Plot 2D', 'self.inspect.plot2D()'),
+            return [('Less', "self.inspect.display('less')"),
+                    ('Plot 2D', 'self.inspect.plot2D()'),
+                    ('Plot (cols)', 'self.inspect.plot1Dcols()'),
+                    ('Plot (lines)', 'self.inspect.plot1Dlines()'),
+                    ('Save', 'self.menu_save()'),
+                    ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
+
+        elif (self.vartype == 'DataFrame'):
+            return [('Less', "self.inspect.display('less')"),
+                    ('Plot 2D', 'self.inspect.plot2D()'),
                     ('Plot (cols)', 'self.inspect.plot1Dcols()'),
                     ('Plot (lines)', 'self.inspect.plot1Dlines()'),
                     ('Save', 'self.menu_save()'),

@@ -229,6 +229,7 @@ def init_kernel(kc, backend='tk'):
     backend = 'tk'
 
     kc.execute("import numpy as _np", store_history=False)
+    kc.execute("import pandas as _pd", store_history=False)
     kc.execute("_np.set_printoptions(threshold={})".format(sys.maxsize), store_history=False)
     kc.execute("%matplotlib {}".format(backend), store_history=False)
     kc.execute("import cpyvke.utils.inspector as _inspect", store_history=False)

@@ -31,6 +31,10 @@ DOCSTRING
 import curses
 from matplotlib.pyplot import figure, plot, imshow, show
 import numpy as np
+import pandas as pd
+pd.set_option('display.max_rows', None)     # 显示所有行
+pd.set_option('display.max_columns', None)  # 显示所有列
+
 import os
 from time import time, sleep
 from multiprocessing import Process
@@ -91,11 +95,41 @@ def threaded(func):
 class Inspect:
     """ Plot/Display variable. """
 
-    def __init__(self, varval, varname, vartype):
+    def __init__(self, sock, varval, varname, vartype):
 
+        self.sock = sock
         self.varval = varval
         self.vartype = vartype
         self.varname = varname
+
+    def wait(self):
+        """ Wait for variable value. """
+
+        i, j = 0, 0
+        spinner = [['.', 'o', 'O', 'o'],
+                   ['.', 'o', 'O', '@', '*'],
+                   ['v', '<', '^', '>'],
+                   ['(o)(o)', '(-)(-)', '(_)(_)'],
+                   ['◴', '◷', '◶', '◵'],
+                   ['←', '↖', '↑', '↗', '→', '↘', '↓', '↙'],
+                   ['▁', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃'],
+                   ['▉', '▊', '▋', '▌', '▍', '▎', '▏', '▎', '▍', '▌', '▋', '▊', '▉'],
+                   ['▖', '▘', '▝', '▗'],
+                   ['▌', '▀', '▐', '▄'],
+                   ['┤', '┘', '┴', '└', '├', '┌', '┬', '┐'],
+                   ['◢', '◣', '◤', '◥'],
+                   ['◰', '◳', '◲', '◱'],
+                   ['◐', '◓', '◑', '◒'],
+                   ['|', '/', '-', '\\'],
+                   ['.', 'o', 'O', '@', '*'],
+                   ['◡◡', '⊙⊙', '◠◠'],
+                   ['◜ ', ' ◝', ' ◞', '◟ '],
+                   ['◇', '◈', '◆'],
+                   ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
+                   ['⠁', '⠂', '⠄', '⡀', '⢀', '⠠', '⠐', '⠈'],
+                   ['Searching.', 'Searching..', 'Searching...']
+                   ]
+
 
     @staticmethod
     def type_struct():
@@ -163,7 +197,8 @@ class Inspect:
         if self.vartype == 'unicode':
             with open(filename, 'w') as f:
                 f.write(self.varval.encode(code))
-
+        if self.varval == 'DataFrame':
+            code = self.varname + ".to_csv('" + self.filename + "', index=False)"
         else:
             with open(filename, 'w') as f:
                 f.write(self.varval)
@@ -177,11 +212,17 @@ class Inspect:
         filename = '/tmp/tmp_cVKE'
 
         # Convert all type of variable to string
-        if self.vartype != 'str' and self.vartype != 'unicode':
+        if self.vartype != 'str' and self.vartype != 'unicode' and self.vartype != 'DataFrame':
             self.varval = str(self.varval)
 
         #
-        if self.vartype == 'unicode':
+        if self.vartype == 'DataFrame':
+            # code = self.varname + ".to_csv('" + filename + "', index=True, sep='" + "\t" + "')"
+            # send_msg(self.sock.RequestSock, '<code>' + code)
+            # self.wait()
+            filename = '/tmp/tmp_' + self.varname + '.tsv'
+
+        elif self.vartype == 'unicode':
             with open(filename, 'w') as f:
                 f.write(self.varval.encode(code))
 
@@ -204,7 +245,43 @@ class Inspect:
                 f.write(self.varval)
 
         with suspend_curses():
-            subprocess.run([app, filename])
+            if app == 'less':
+                try:
+                    # Try opening with lvim
+                    command1 = ["column", "-t", "-s", "\t", filename]
+                    command2 = ["less", "-S"]
+                    command3 = ["lvim", "-"]
+                    
+                    p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+                    p2 = subprocess.Popen(command2, stdin=p1.stdout, stdout=subprocess.PIPE)
+                    p1.stdout.close()
+                    p3 = subprocess.Popen(command3, stdin=p2.stdout)
+                    p2.stdout.close()
+                    p3.communicate()
+                except FileNotFoundError:
+                    try:
+                        # If lvim is not available, try opening with vim
+                        command1 = ["column", "-t", "-s", "\t", filename]
+                        command2 = ["less", "-S"]
+                        command3 = ["vim", "-"]
+                        
+                        p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+                        p2 = subprocess.Popen(command2, stdin=p1.stdout, stdout=subprocess.PIPE)
+                        p1.stdout.close()
+                        p3 = subprocess.Popen(command3, stdin=p2.stdout)
+                        p2.stdout.close()
+                        p3.communicate()
+                    except FileNotFoundError:               
+
+                        command1 = ["column", "-t", "-s", "\t", filename]
+                        command2 = ["less", "-S"]
+                        
+                        p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+                        p2 = subprocess.Popen(command2, stdin=p1.stdout)
+                        p1.stdout.close()
+                        p2.communicate()
+            else:
+                subprocess.run([app, filename])
             subprocess.run(['rm', filename])
 
 
@@ -241,6 +318,9 @@ class ProceedInspection:
 
         elif self.vartype == 'ndarray':
             self.get_ndarray()
+
+        elif self.vartype == 'DataFrame':
+            self.get_dataframe()
 
         elif '.' + self.vartype in self.varval:     # Class instance
             self.vartype = 'class'
@@ -325,6 +405,24 @@ class ProceedInspection:
             self.logger.debug('kd5 answered')
             os.remove(self.filename)
             self._ismenu = True
+
+    def get_dataframe(self):
+        """ Get pandas characteristics. """
+        
+        self.filename = '/tmp/tmp_' + self.varname + '.tsv'
+        code = self.varname + ".to_csv('" + self.filename + "', index=True, sep='\t')"
+        try:
+            send_msg(self.sock.RequestSock, '<code>' + code)
+            self.logger.debug("Name of module '{}' asked to kd5".format(self.varname))
+            self.wait()
+        except Exception:
+            self.logger.error('Get traceback:', exc_info=True)
+            self.kernel_busy()
+        else:
+            self.logger.debug('kd5 answered')
+            # os.remove(self.filename)
+            self._ismenu = True
+
 
     def get_help(self):
         """ Help item in menu """
