@@ -2,4 +2,5 @@ jupyter_client
 ipykernel
 psutil
 numpy
+pandas
 matplotlib
