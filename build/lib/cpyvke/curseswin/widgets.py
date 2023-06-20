@@ -67,9 +67,9 @@ class Viewer(PadWin):
     @property
     def content(self):
         if type(self.varval) is str:
-            # if self.vartype in ['Index', 'MultiIndex', 'DataFrame', 'Series']:
-            #     filename = '/tmp/tmp_' + self.varname + '.tsv'
-            #     with open(filename, 'r') as f: self.varval = f.read()
+            if self.vartype in ['Index', 'MultiIndex', 'DataFrame', 'Series']:
+                filename = '/tmp/tmp_' + self.varname + '.tsv'
+                with open(filename, 'r') as f: self.varval = f.read()
             dumped = str_format(self.varval, self.app.screen_width-6)
         else:
             dumped = dump(self.varval)

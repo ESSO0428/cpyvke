@@ -230,12 +230,6 @@ class Inspect:
             # send_msg(self.sock.RequestSock, '<code>' + code)
             # self.wait()
             filename = '/tmp/tmp_' + self.varname + '.tsv'
-            if os.path.exists(filename):
-                pass
-            else:
-                with open(filename, 'w') as f:
-                    f.write(self.varval)
-
 
         elif self.vartype == 'unicode':
             with open(filename, 'w') as f:
@@ -467,8 +461,7 @@ class ProceedInspection:
             self.kernel_busy()
         else:
             self.logger.debug('kd5 answered')
-            with open(self.filename, 'r') as f: self.varval = f.read()
-            os.remove(self.filename)
+            # os.remove(self.filename)
             self._ismenu = True
 
 
