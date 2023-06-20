@@ -183,7 +183,7 @@ class ExplorerWin(ListPanel):
                     ('Save', 'self.menu_save()'),
                     ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
 
-        elif (self.vartype in ['DataFrame', 'Series']):
+        elif (self.vartype in ['DataFrame', 'Series', 'Index']):
             return [('Less', "self.inspect.display('less')"),
                     ('Plot 2D', 'self.inspect.plot2D()'),
                     ('Plot (cols)', 'self.inspect.plot1Dcols()'),
