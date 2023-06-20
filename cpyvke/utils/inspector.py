@@ -197,7 +197,7 @@ class Inspect:
         if self.vartype == 'unicode':
             with open(filename, 'w') as f:
                 f.write(self.varval.encode(code))
-        if self.varval == 'DataFrame':
+        if self.varval in ['DataFrame', 'Series']:
             code = self.varname + ".to_csv('" + self.filename + "', index=False)"
         else:
             with open(filename, 'w') as f:
@@ -212,11 +212,11 @@ class Inspect:
         filename = '/tmp/tmp_cVKE'
 
         # Convert all type of variable to string
-        if self.vartype != 'str' and self.vartype != 'unicode' and self.vartype != 'DataFrame':
+        if self.vartype != 'str' and self.vartype != 'unicode' and self.vartype not in ['DataFrame', 'Series']:
             self.varval = str(self.varval)
 
         #
-        if self.vartype == 'DataFrame':
+        if self.vartype in ['DataFrame', 'Series']:
             # code = self.varname + ".to_csv('" + filename + "', index=True, sep='" + "\t" + "')"
             # send_msg(self.sock.RequestSock, '<code>' + code)
             # self.wait()
@@ -319,7 +319,7 @@ class ProceedInspection:
         elif self.vartype == 'ndarray':
             self.get_ndarray()
 
-        elif self.vartype == 'DataFrame':
+        elif self.vartype in ['DataFrame', 'Series']:
             self.get_dataframe()
 
         elif '.' + self.vartype in self.varval:     # Class instance
