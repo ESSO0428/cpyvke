@@ -103,6 +103,7 @@ class KernelWin(ListPanel):
             return [('Connect', 'self._connect_k()'),
                     ('New', 'self._new_k()'),
                     ('Shutdown', 'self._kill_k()'),
+                    # ('Shutdown (remove file)', 'self._rm_cf()'),
                     ('Shutdown all alive', 'self._kill_all_k()'),
                     ('Remove all died', 'self._rm_all_cf()')]
 
@@ -144,8 +145,10 @@ class KernelWin(ListPanel):
         """ Kill kernel. """
 
         shutdown_kernel(self.item_dic[self.selected]['value'])
+        self.app.config['kernel version']['version']
         self.position = 1
         self.page = 1
+
 
     def _kill_all_k(self):
         """ Kill all kernel marked as Alive. """

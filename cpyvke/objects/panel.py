@@ -872,7 +872,10 @@ class ListPanel(BasePanel):
             menukey = self.gwin_menu.getch()
 
             if menukey in self.app.kenter:
-                eval(self.menu_lst[self.menu_cursor][1])
+                try:
+                    eval(self.menu_lst[self.menu_cursor][1])
+                except:
+                    print('Not found Results')
                 break
 
             elif menukey in self.app.kup:

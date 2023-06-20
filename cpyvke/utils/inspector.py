@@ -142,37 +142,46 @@ class Inspect:
 
     @threaded
     def plot2D(self):
-        """ Plot 2D variable. """
+        try:
+            """ Plot 2D variable. """
 
-        figure()
-        imshow(self.varval)
-        show()
+            figure()
+            imshow(self.varval)
+            show()
+        except:
+            print("ERROR can't display plot")
 
     @threaded
     def plot1D(self):
         """ Plot 1D variable. """
-
-        figure()
-        plot(self.varval)
-        show()
+        try:
+            figure()
+            plot(self.varval)
+            show()
+        except:
+            print("ERROR can't display plot")
 
     @threaded
     def plot1Dcols(self):
         """ Plot 2D variable : superimpose all columns """
-
-        figure()
-        for i in range(np.shape(self.varval)[1]):
-            plot(self.varval[:, i])
-        show()
+        try:
+            figure()
+            for i in range(np.shape(self.varval)[1]):
+                plot(self.varval[:, i])
+            show()
+        except:
+            print("ERROR can't display plot")
 
     @threaded
     def plot1Dlines(self):
         """ Plot 2D variable : superimpose all lines """
-
-        figure()
-        for i in range(np.shape(self.varval)[0]):
-            plot(self.varval[i, :])
-        show()
+        try:
+            figure()
+            for i in range(np.shape(self.varval)[0]):
+                plot(self.varval[i, :])
+            show()
+        except:
+            print("ERROR can't display plot")
 
     def save_np(self, varname, SaveDir, METHOD='npy'):
         """ Save numpy variable to file """
@@ -212,35 +221,28 @@ class Inspect:
         filename = '/tmp/tmp_cVKE'
 
         # Convert all type of variable to string
-        if self.vartype != 'str' and self.vartype != 'unicode' and self.vartype not in ['DataFrame', 'Series', 'Index']:
+        if self.vartype != 'str' and self.vartype != 'unicode' and self.vartype not in ['DataFrame', 'Series', 'Index', 'MultiIndex']:
             self.varval = str(self.varval)
 
         #
-        if self.vartype in ['DataFrame', 'Series', 'Index']:
+        if self.vartype in ['DataFrame', 'Series', 'Index', 'MultiIndex']:
             # code = self.varname + ".to_csv('" + filename + "', index=True, sep='" + "\t" + "')"
             # send_msg(self.sock.RequestSock, '<code>' + code)
             # self.wait()
             filename = '/tmp/tmp_' + self.varname + '.tsv'
-        elif self.vartype == 'Index':
-            filename = '/tmp/tmp_' + self.varname + '.tsv'
-            # 將列名轉換為列表
-            self.varval = list(self.varval)
-            # 將列表轉換為字符串
-            column_str = str(self.varval)
-            column_str = ',\n'.join([f'  {col}' for col in column_list])
-            # 上下加上 [ ] 包裹
-            self.varval = f"Index([\n{column_str}\n])"
-            with open(filename, 'w') as f:
-                f.write(self.varval)
 
         elif self.vartype == 'unicode':
             with open(filename, 'w') as f:
                 f.write(self.varval.encode(code))
 
         elif self.vartype == 'function':
-            if arg == 'help':
-                with open(filename, 'w') as f:
-                    f.write(self.varval)
+            try:
+                if arg == 'help':
+                    with open(filename, 'w') as f:
+                        f.write(self.varval)
+            except ImportError:
+                print('Not found!')
+
 
         elif self.vartype == 'module':
             if arg == 'help':
@@ -256,7 +258,7 @@ class Inspect:
                 f.write(self.varval)
 
         with suspend_curses():
-            if app == 'less':
+            if app == 'less' and os.path.exists(filename):
                 try:
                     # Try opening with lvim
                     command1 = ["column", "-t", "-s", "\t", filename]
@@ -271,10 +273,10 @@ class Inspect:
                     p3.communicate()
                 except FileNotFoundError:
                     try:
-                        # If lvim is not available, try opening with vim
+                        # If lvim is not available, try opening with nvim
                         command1 = ["column", "-t", "-s", "\t", filename]
                         command2 = ["less", "-S"]
-                        command3 = ["vim", "-"]
+                        command3 = ["nvim", "-"]
                         
                         p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
                         p2 = subprocess.Popen(command2, stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -282,17 +284,32 @@ class Inspect:
                         p3 = subprocess.Popen(command3, stdin=p2.stdout)
                         p2.stdout.close()
                         p3.communicate()
-                    except FileNotFoundError:               
+                    except FileNotFoundError:
+                        try :
+                            # If lvim is not available, try opening with vim
+                            command1 = ["column", "-t", "-s", "\t", filename]
+                            command2 = ["less", "-S"]
+                            command3 = ["vim", "-"]
+                            
+                            p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+                            p2 = subprocess.Popen(command2, stdin=p1.stdout, stdout=subprocess.PIPE)
+                            p1.stdout.close()
+                            p3 = subprocess.Popen(command3, stdin=p2.stdout)
+                            p2.stdout.close()
+                            p3.communicate()
+                        except FileNotFoundError:               
 
-                        command1 = ["column", "-t", "-s", "\t", filename]
-                        command2 = ["less", "-S"]
-                        
-                        p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
-                        p2 = subprocess.Popen(command2, stdin=p1.stdout)
-                        p1.stdout.close()
-                        p2.communicate()
-            else:
+                            command1 = ["column", "-t", "-s", "\t", filename]
+                            command2 = ["less", "-S"]
+                            
+                            p1 = subprocess.Popen(command1, stdout=subprocess.PIPE)
+                            p2 = subprocess.Popen(command2, stdin=p1.stdout)
+                            p1.stdout.close()
+                            p2.communicate()
+            elif os.path.exists(filename):
                 subprocess.run([app, filename])
+            else:
+                pass
             subprocess.run(['rm', filename])
 
 
@@ -330,7 +347,7 @@ class ProceedInspection:
         elif self.vartype == 'ndarray':
             self.get_ndarray()
 
-        elif self.vartype in ['DataFrame', 'Series']:
+        elif self.vartype in ['DataFrame', 'Series', 'Index', 'MultiIndex']:
             self.get_dataframe()
 
         elif '.' + self.vartype in self.varval:     # Class instance
@@ -421,7 +438,20 @@ class ProceedInspection:
         """ Get pandas characteristics. """
         
         self.filename = '/tmp/tmp_' + self.varname + '.tsv'
-        code = self.varname + ".to_csv('" + self.filename + "', index=True, sep='\t')"
+        if self.vartype == 'Index':
+            code = f"""
+                column_str = ',\\n'.join([f'  {{col}}' for col in {self.varname}.tolist()])
+                wrapped_str = f"Index([\\n{{column_str}}\\n])"
+                with open('{self.filename}', 'w') as f:
+                    f.write(wrapped_str)
+            """
+        elif self.vartype == 'MultiIndex':
+            code = f"""
+                with open('{self.filename}', 'w') as f:
+                    f.write(str({self.varname}))
+            """
+        else:
+            code = self.varname + ".to_csv('" + self.filename + "', index=True, sep='\t')"
         try:
             send_msg(self.sock.RequestSock, '<code>' + code)
             self.logger.debug("Name of module '{}' asked to kd5".format(self.varname))

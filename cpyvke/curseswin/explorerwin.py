@@ -135,10 +135,10 @@ class ExplorerWin(ListPanel):
         # Init all Inspectors
         self.inspect = Inspect(self.sock, self.varval, self.varname, self.vartype)
         self.class_win = ClassWin(self.app, self.sock, self.logger, self.varval, self.varname)
-        self.view = Viewer(self.app, self.varval, self.varname)
+        self.view = Viewer(self.app, self.varval, self.varname, self.vartype)
         if self.doc:
-            self.view_doc = Viewer(self.app, self.doc, self.varname)
-            self.inspect_doc = Inspect(self.doc, self.varname, self.vartype)
+            self.view_doc = Viewer(self.app, self.doc, self.varname, self.vartype)
+            self.inspect_doc = Inspect(self.doc, self.varname, self.vartype, self.vartype)
 
     def create_menu(self):
         """ Create the item list for the general menu. """
@@ -183,8 +183,18 @@ class ExplorerWin(ListPanel):
                     ('Save', 'self.menu_save()'),
                     ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
 
-        elif (self.vartype in ['DataFrame', 'Series', 'Index']):
-            return [('Less', "self.inspect.display('less')"),
+        elif (self.vartype in ['DataFrame', 'Series']):
+            return [('View', 'self.view.display()'),
+                    ('Less', "self.inspect.display('less')"),
+                    ('Plot 2D', 'self.inspect.plot2D()'),
+                    ('Plot (cols)', 'self.inspect.plot1Dcols()'),
+                    ('Plot (lines)', 'self.inspect.plot1Dlines()'),
+                    ('Save', 'self.menu_save()'),
+                    ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
+
+        elif (self.vartype in ['Index', 'MultiIndex']):
+            return [('View', 'self.view.display()'),
+                    ('Less', "self.inspect.display('less')"),
                     ('Plot 2D', 'self.inspect.plot2D()'),
                     ('Plot (cols)', 'self.inspect.plot1Dcols()'),
                     ('Plot (lines)', 'self.inspect.plot1Dlines()'),

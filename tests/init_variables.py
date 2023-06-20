@@ -55,8 +55,8 @@ class MyClass1:
         return MyClass1.b
 
     @classmethod
-    def classmethod(e):
-        return e
+    def classmethod(cls):
+        return cls
 
     def myfunc(self):      # non-static method
         return self.a, self.b

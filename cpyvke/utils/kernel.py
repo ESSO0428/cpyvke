@@ -29,7 +29,9 @@ DOCSTRING
 """
 
 
-from jupyter_client import BlockingKernelClient, manager
+from jupyter_client.blocking.client import BlockingKernelClient
+from jupyter_client import manager
+import threading
 import os
 import sys
 import subprocess
@@ -85,7 +87,8 @@ def check_server(port):
 
     """
 
-    addr = [item.laddr for item in psutil.net_connections('inet') if str(port) in str(item.laddr[1])]
+    # addr = [item.laddr for item in psutil.net_connections('inet') if str(port) in str(item.laddr[1])]
+    addr = [item.laddr for item in psutil.net_connections('inet') if item.laddr and str(port) in str(item.laddr[1])]
     if addr:
         return True
     else:
@@ -239,7 +242,14 @@ def shutdown_kernel(cf):
     """ Shutdown a kernel based on its connection file. """
 
     km, kc = connect_kernel_as_manager(cf)
-    km.shutdown_kernel(now=True)
+    # km.shutdown_kernel(now=True)
+    def shutdown():
+        km.shutdown_kernel(now=True)
+        kc.stop_channels()  # 停止通道
+        km.cleanup_resources()  # 清理資源
+
+    shutdown_thread = threading.Thread(target=shutdown)
+    shutdown_thread.start()
 
 
 def restart_kernel(cf):

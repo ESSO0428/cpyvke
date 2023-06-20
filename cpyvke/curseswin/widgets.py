@@ -44,10 +44,11 @@ code = locale.getpreferredencoding()
 class Viewer(PadWin):
     """ Display variable content in a pad. """
 
-    def __init__(self, app, varval, varname):
+    def __init__(self, app, varval, varname, vartype):
         super(Viewer, self).__init__(app)
         self.varval = varval
         self.varname = varname
+        self.vartype = vartype
 
     def color(self, item):
         if item == 'txt':
@@ -66,6 +67,9 @@ class Viewer(PadWin):
     @property
     def content(self):
         if type(self.varval) is str:
+            if self.vartype in ['Index', 'MultiIndex', 'DataFrame', 'Series']:
+                filename = '/tmp/tmp_' + self.varname + '.tsv'
+                with open(filename, 'r') as f: self.varval = f.read()
             dumped = str_format(self.varval, self.app.screen_width-6)
         else:
             dumped = dump(self.varval)
