@@ -197,7 +197,7 @@ class Inspect:
         if self.vartype == 'unicode':
             with open(filename, 'w') as f:
                 f.write(self.varval.encode(code))
-        if self.varval in ['DataFrame', 'Series', 'Index']:
+        if self.varval in ['DataFrame', 'Series']:
             code = self.varname + ".to_csv('" + self.filename + "', index=False)"
         else:
             with open(filename, 'w') as f:
@@ -221,6 +221,17 @@ class Inspect:
             # send_msg(self.sock.RequestSock, '<code>' + code)
             # self.wait()
             filename = '/tmp/tmp_' + self.varname + '.tsv'
+        elif self.vartype == 'Index':
+            filename = '/tmp/tmp_' + self.varname + '.tsv'
+            # 將列名轉換為列表
+            self.varval = list(self.varval)
+            # 將列表轉換為字符串
+            column_str = str(self.varval)
+            column_str = ',\n'.join([f'  {col}' for col in column_list])
+            # 上下加上 [ ] 包裹
+            self.varval = f"Index([\n{column_str}\n])"
+            with open(filename, 'w') as f:
+                f.write(self.varval)
 
         elif self.vartype == 'unicode':
             with open(filename, 'w') as f:
@@ -319,7 +330,7 @@ class ProceedInspection:
         elif self.vartype == 'ndarray':
             self.get_ndarray()
 
-        elif self.vartype in ['DataFrame', 'Series', 'Index']:
+        elif self.vartype in ['DataFrame', 'Series']:
             self.get_dataframe()
 
         elif '.' + self.vartype in self.varval:     # Class instance
