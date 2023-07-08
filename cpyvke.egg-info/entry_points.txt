@@ -1,4 +1,0 @@
-[console_scripts]
-cpyvke = cpyvke.cpyvke:main
-cpyvke-launch-ipython = cpyvke.launch:main
-kd5 = cpyvke.kd5:main

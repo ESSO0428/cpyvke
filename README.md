@@ -74,6 +74,10 @@ To start working, just launch `cpyvke` in a console. It will create a new kernel
 
 `cpyvke`
 
+If you already have a running kernel, you can use `cpyvke last` in the console to start working. It will check for the presence of an existing kernel and, if available, start the daemon and launch the client without creating a new kernel:
+
+`cpyvke last`
+
 You can also launch `cpyvke-launch-ipython` to open the current kernel :
 
 `cpyvke-launch-ipython`
@@ -143,7 +147,7 @@ development environment for Python in console.
 * cpyvke-launch-ipython automatically launch the current ipython console
 * ~~You can also manually open an existing ipython instance like this :
 	`ipython console --existing kernel-xxxxx.json`~~
-* For the latest version of Python, you should use `ipython console --existing kernel-xxxxx.json` instead of `jupyter console --existing kernel-xxxxx.json`.
+* For the latest version of Python, you should use `jupyter console --existing kernel-xxxxx.json` instead of `ipython console --existing kernel-xxxxx.json`.
 where xxxxx is the id of the kernel
 
 ### Note
@@ -153,6 +157,8 @@ If you just want to test cpyvke without installing. In cpyvke/ directory :
 * launch kd5 first : `python3 -m cpyvke.kd5 start`
 * then launch cpyvke : `python3 -m cpyvke.cpyvke`
 * and launch ipython in another console : `python3 -m cpyvke.launch`
+
+If you want to use an existing kernel, you can simply run `python3 -m cpyvke.kd5 last` instead of `python3 -m cpyvke.kd5 start`.
 
 - - -
 
