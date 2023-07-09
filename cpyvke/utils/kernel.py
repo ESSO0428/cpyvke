@@ -244,8 +244,8 @@ def shutdown_kernel(cf):
     km, kc = connect_kernel_as_manager(cf)
     # km.shutdown_kernel(now=True)
     def shutdown():
-        km.shutdown_kernel(now=True)
         kc.stop_channels()  # 停止通道
+        km.shutdown_kernel(now=True)
         km.cleanup_resources()  # 清理資源
 
     shutdown_thread = threading.Thread(target=shutdown)
