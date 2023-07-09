@@ -1,4 +1,6 @@
 build/
 Dropbox/
+# ignore binary file dir
 dist/
+# ignore egg-info
 cpyvke.egg-info/
