@@ -312,6 +312,10 @@ class Inspect:
                             p2 = subprocess.Popen(command2, stdin=p1.stdout)
                             p1.stdout.close()
                             p2.communicate()
+            elif app == 'dataexplore' and os.path.exists(filename):
+                command = f'{app} -i {filename}; rm {filename}'
+                process = subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return
             elif os.path.exists(filename):
                 subprocess.run([app, filename])
             else:

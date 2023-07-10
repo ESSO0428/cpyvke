@@ -2,4 +2,4 @@ build/
 Dropbox/
 dist/
 cpyvke.egg-info/
-cpyvke/__pycache__
+cpyvke/__pycache__/

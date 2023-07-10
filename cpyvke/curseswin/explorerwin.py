@@ -171,12 +171,14 @@ class ExplorerWin(ListPanel):
 
         elif (self.vartype == 'ndarray') and (len(self.varval.shape) == 1):
             return [('Less', "self.inspect.display('less')"),
+                    ('dataexplore',"self.inspect.display('dataexplore')"),
                     ('Plot', 'self.inspect.plot1D()'),
                     ('Save', 'self.menu_save()'),
                     ('Delete', "self.sock.del_var(self.varname, self.app.wng)")]
 
         elif (self.vartype == 'ndarray') and (len(self.varval.shape) == 2):
             return [('Less', "self.inspect.display('less')"),
+                    ('dataexplore',"self.inspect.display('dataexplore')"),
                     ('Plot 2D', 'self.inspect.plot2D()'),
                     ('Plot (cols)', 'self.inspect.plot1Dcols()'),
                     ('Plot (lines)', 'self.inspect.plot1Dlines()'),
@@ -185,6 +187,7 @@ class ExplorerWin(ListPanel):
 
         elif (self.vartype in ['DataFrame', 'Series']):
             return [('View', 'self.view.display()'),
+                    ('dataexplore',"self.inspect.display('dataexplore')"),
                     ('Less', "self.inspect.display('less')"),
                     ('Plot 2D', 'self.inspect.plot2D()'),
                     ('Plot (cols)', 'self.inspect.plot1Dcols()'),
