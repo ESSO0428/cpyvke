@@ -1,6 +1,6 @@
-jupyter_client
-ipykernel
-psutil
-numpy
-pandas
-matplotlib
+jupyter_client>=8.2.0
+ipykernel>=5.3.4
+psutil>=5.8.0
+numpy>=1.20.0
+pandas>=1.2.4
+matplotlib>=3.3.4
