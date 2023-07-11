@@ -471,9 +471,18 @@ class ProceedInspection:
             self.kernel_busy()
         else:
             self.logger.debug('kd5 answered')
-            with open(self.filename, 'r') as f: self.varval = f.read()
-            os.remove(self.filename)
-            self._ismenu = True
+            try:
+                with open(self.filename, 'r') as f:
+                    self.varval = f.read()
+                os.remove(self.filename)
+                self._ismenu = True
+            except FileNotFoundError:
+                self.logger.error("File not found: {}".format(self.filename))
+            except Exception as e:
+                self.logger.error("An error occurred while processing file: {}".format(e))
+            # with open(self.filename, 'r') as f: self.varval = f.read()
+            # os.remove(self.filename)
+            # self._ismenu = True
 
 
     def get_help(self):

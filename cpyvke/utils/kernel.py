@@ -211,8 +211,8 @@ def connect_kernel(cf):
         # km = manager.AsyncKernelManager(connection_file=cf)
         km.start_kernel()
         # Kernel Client
-        # kc = km.blocking_client()
-        kc = km.client()
+        kc = km.blocking_client()
+        # kc = km.client()
 
     init_kernel(kc)
 
