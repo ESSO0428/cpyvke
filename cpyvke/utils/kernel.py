@@ -28,8 +28,9 @@ DOCSTRING
 @author: Cyril Desjouy
 """
 
-
+import asyncio
 from jupyter_client.blocking.client import BlockingKernelClient
+from jupyter_client.asynchronous.client import AsyncKernelClient
 from jupyter_client import manager
 import threading
 import os
@@ -69,7 +70,8 @@ def is_runing(cf):
     """ Check if kernel is alive.
     """
 
-    kc = BlockingKernelClient()
+    # kc = BlockingKernelClient()
+    kc = AsyncKernelClient()
     kc.load_connection_file(cf)
     port = kc.get_connection_info()['iopub_port']
 
@@ -198,65 +200,84 @@ def connect_kernel(cf):
 
     if is_runing(cf):
         kc = BlockingKernelClient(connection_file=cf)
+        # kc = AsyncKernelClient(connection_file=cf)
         kc.load_connection_file(cf)
         km = None
 
     else:
         # Kernel manager
         km = manager.KernelManager(connection_file=cf)
+        # km = manager.AsyncKernelManager(connection_file=cf)
         km.start_kernel()
         # Kernel Client
-        kc = km.blocking_client()
+        # kc = km.blocking_client()
+        kc = km.client()
 
     init_kernel(kc)
 
     return km, kc
 
 
-def connect_kernel_as_manager(cf):
+async def connect_kernel_as_manager(cf):
     """ Connect a kernel """
 
     # Kernel manager
-    km = manager.KernelManager(connection_file=cf)
-    km.start_kernel()
+    # km = manager.KernelManager(connection_file=cf)
+    km = manager.AsyncKernelManager(connection_file=cf)
+    await km.start_kernel()
     # Kernel Client
-    kc = km.blocking_client()
-    init_kernel(kc)
+    # kc = km.blocking_client()
+    kc = km.client()
+    await init_kernel(kc)
 
     return km, kc
 
 
-def init_kernel(kc, backend='tk'):
+async def init_kernel(kc, backend='tk'):
     """ init communication. """
 
     backend = 'tk'
 
-    kc.execute("import numpy as _np", store_history=False)
-    kc.execute("import pandas as _pd", store_history=False)
-    kc.execute("_np.set_printoptions(threshold={})".format(sys.maxsize), store_history=False)
-    kc.execute("%matplotlib {}".format(backend), store_history=False)
-    kc.execute("import cpyvke.utils.inspector as _inspect", store_history=False)
+    await kc.execute("import numpy as _np", store_history=False)
+    await kc.execute("import pandas as _pd", store_history=False)
+    await kc.execute("_np.set_printoptions(threshold={})".format(sys.maxsize), store_history=False)
+    await kc.execute("%matplotlib {}".format(backend), store_history=False)
+    await kc.execute("import cpyvke.utils.inspector as _inspect", store_history=False)
 
 
-def shutdown_kernel(cf):
+async def async_shutdown_kernel(cf):
     """ Shutdown a kernel based on its connection file. """
 
-    km, kc = connect_kernel_as_manager(cf)
-    # km.shutdown_kernel(now=True)
-    def shutdown():
-        kc.stop_channels()  # 停止通道
-        km.shutdown_kernel(now=True)
-        km.cleanup_resources()  # 清理資源
+    km, kc = await connect_kernel_as_manager(cf)
+    await km.shutdown_kernel(now=True)
 
-    shutdown_thread = threading.Thread(target=shutdown)
-    shutdown_thread.start()
+def shutdown_kernel(cf):
+    asyncio.run(async_shutdown_kernel(cf))
 
 
-def restart_kernel(cf):
+# def shutdown_kernel(cf):
+#     """ Shutdown a kernel based on its connection file. """
+
+#     km, kc = connect_kernel_as_manager(cf)
+#     # km.shutdown_kernel(now=True)
+#     def shutdown():
+#         kc.stop_channels()  # 停止通道
+#         km.shutdown_kernel(now=True)
+#         km.cleanup_resources()  # 清理資源
+
+#     shutdown_thread = threading.Thread(target=shutdown)
+#     shutdown_thread.start()
+
+
+async def async_restart_kernel(cf):
     """ Restart a kernel based on its connection file. """
 
-    km, kc = connect_kernel_as_manager(cf)
+    km, kc = await connect_kernel_as_manager(cf)
     try:
-        km.start_kernel()
+        await km.start_kernel()
     except Exception:
         logger.error('Issue restarting kernel', exc_info=True)
+
+def restart_kernel(cf):
+    asyncio.run(async_restart_kernel(cf))
+
