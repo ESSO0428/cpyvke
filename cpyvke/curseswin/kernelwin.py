@@ -28,10 +28,12 @@ DOCSTRING
 @author: Cyril Desjouy
 """
 
+import asyncio
 import os
 import curses
 from cpyvke.utils.kernel import kernel_dic, start_new_kernel, \
-    shutdown_kernel, connect_kernel
+    shutdown_kernel, connect_kernel, \
+    async_shutdown_kernel
 from cpyvke.utils.comm import send_msg
 from cpyvke.objects.panel import ListPanel
 
@@ -150,14 +152,17 @@ class KernelWin(ListPanel):
         self.page = 1
 
 
-    def _kill_all_k(self):
+    async def async_kill_all_k(self):
         """ Kill all kernel marked as Alive. """
 
         for name in self.item_dic:
             if self.item_dic[name]['type'] == 'Alive':
-                shutdown_kernel(self.item_dic[name]['value'])
+                await async_shutdown_kernel(self.item_dic[name]['value'])
         self.page = 1
         self.position = 1  # Reinit cursor location
+    def _kill_all_k(self):
+        asyncio.run(self.async_kill_all_k())
+
 
     def _rm_cf(self):
         """ Remove connection file of died kernel. """
