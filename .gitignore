@@ -3,3 +3,6 @@ Dropbox/
 dist/
 cpyvke.egg-info/
 cpyvke/__pycache__/
+cpyvke/curseswin/__pycache__/
+cpyvke/objects/__pycache__/
+cpyvke/utils/__pycache__/

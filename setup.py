@@ -36,6 +36,9 @@ if sys.version_info < (2,7):
     raise NotImplementedError(
         "Sorry, you need at least Python 2.7 to use cpyvke.")
 
+list_install_requires = list()
+with open('requirements.txt') as f:
+    list_install_requires = f.read().splitlines()   
 setup(
     name='cpyvke',
     description='A Kernel and variable explorer in Curses',
@@ -48,7 +51,7 @@ setup(
     author_email='ipselium@free.fr',
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["jupyter_client", "ipykernel", "psutil", "numpy", "matplotlib"],
+    install_requires=list_install_requires,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
