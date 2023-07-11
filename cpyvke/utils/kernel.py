@@ -73,6 +73,7 @@ def is_runing(cf):
     # kc = BlockingKernelClient()
     kc = AsyncKernelClient()
     kc.load_connection_file(cf)
+    # kc.start_channels()
     port = kc.get_connection_info()['iopub_port']
 
     # if check_server(port):
@@ -228,21 +229,21 @@ async def connect_kernel_as_manager(cf):
     # Kernel Client
     # kc = km.blocking_client()
     kc = km.client()
-    await init_kernel(kc)
+    init_kernel(kc)
 
     return km, kc
 
 
-async def init_kernel(kc, backend='tk'):
+def init_kernel(kc, backend='tk'):
     """ init communication. """
 
     backend = 'tk'
 
-    await kc.execute("import numpy as _np", store_history=False)
-    await kc.execute("import pandas as _pd", store_history=False)
-    await kc.execute("_np.set_printoptions(threshold={})".format(sys.maxsize), store_history=False)
-    await kc.execute("%matplotlib {}".format(backend), store_history=False)
-    await kc.execute("import cpyvke.utils.inspector as _inspect", store_history=False)
+    kc.execute("import numpy as _np", store_history=False)
+    kc.execute("import pandas as _pd", store_history=False)
+    kc.execute("_np.set_printoptions(threshold={})".format(sys.maxsize), store_history=False)
+    kc.execute("%matplotlib {}".format(backend), store_history=False)
+    kc.execute("import cpyvke.utils.inspector as _inspect", store_history=False)
 
 
 async def async_shutdown_kernel(cf):
@@ -253,7 +254,6 @@ async def async_shutdown_kernel(cf):
 
 def shutdown_kernel(cf):
     asyncio.run(async_shutdown_kernel(cf))
-
 
 # def shutdown_kernel(cf):
 #     """ Shutdown a kernel based on its connection file. """
