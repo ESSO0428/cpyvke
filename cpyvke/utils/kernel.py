@@ -40,18 +40,41 @@ import psutil
 import logging
 import socket
 import time
+import glob
+import random
 
 logger = logging.getLogger("cpyvke.ktools")
 
+def generate_unused_kernel_id(exclude_ids=None):
+    runtime_dir = os.path.expanduser("~/.local/share/jupyter/runtime/")
+    existing_ids = set()
+    for filename in glob.glob(runtime_dir + "/kernel-*.json"):
+        kernel_id = filename.split("-")[1].split(".")[0]
+        existing_ids.add(kernel_id)
+
+    if exclude_ids is None:
+        exclude_ids = set()
+
+    while True:
+        kernel_id = str(random.randint(1, 999999))
+        if kernel_id not in existing_ids and kernel_id not in exclude_ids:
+            return kernel_id
 
 def start_new_kernel(LogDir=os.path.expanduser("~") + "/.cpyvke/", version=3):
+
+    kernel_id = generate_unused_kernel_id()
     """ Start a new kernel and return the kernel id """
+    runtime_dir = os.path.expanduser("~/.local/share/jupyter/runtime")
+    python_executable = sys.executable
+    # python or ~/anaconda3/bin/python .... or env python ...
+    kernel_cmd = [python_executable, '-m', 'ipykernel_launcher', '-f', '{}/kernel-{}.json'.format(runtime_dir, kernel_id)]
 
     with open(LogDir + 'kd5.lock', "w") as f:
-        if version == '2':
-            subprocess.Popen(["ipython", "kernel"], stdout=f)
-        else:
-            subprocess.Popen(["ipython3", "kernel"], stdout=f)
+        # if version == '2':
+        #     subprocess.Popen(["ipython", "kernel"], stdout=f)
+        # else:
+        #     subprocess.Popen(["ipython3", "kernel"], stdout=f)
+        subprocess.Popen(kernel_cmd, stdout=f)
 
     time.sleep(1)
 
@@ -207,12 +230,12 @@ def connect_kernel(cf):
 
     else:
         # Kernel manager
-        km = manager.KernelManager(connection_file=cf)
-        # km = manager.AsyncKernelManager(connection_file=cf)
+        # km = manager.KernelManager(connection_file=cf)
+        km = manager.AsyncKernelManager(connection_file=cf)
         km.start_kernel()
         # Kernel Client
-        kc = km.blocking_client()
-        # kc = km.client()
+        # kc = km.blocking_client()
+        kc = km.client()
 
     init_kernel(kc)
 
@@ -246,14 +269,24 @@ def init_kernel(kc, backend='tk'):
     kc.execute("import cpyvke.utils.inspector as _inspect", store_history=False)
 
 
+def find_and_kill_ipykernel_launcher(cmd):
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        if proc.name() == 'python' and all(arg in proc.cmdline() for arg in cmd):
+            proc.kill()
+
 async def async_shutdown_kernel(cf):
     """ Shutdown a kernel based on its connection file. """
 
     km, kc = await connect_kernel_as_manager(cf)
     await km.shutdown_kernel(now=True)
 
+    kernel_cmd = ['-m', 'ipykernel_launcher', '-f', cf]
+    find_and_kill_ipykernel_launcher(kernel_cmd)
+
 def shutdown_kernel(cf):
     asyncio.run(async_shutdown_kernel(cf))
+    
+
 
 # def shutdown_kernel(cf):
 #     """ Shutdown a kernel based on its connection file. """
@@ -280,4 +313,5 @@ async def async_restart_kernel(cf):
 
 def restart_kernel(cf):
     asyncio.run(async_restart_kernel(cf))
+
 

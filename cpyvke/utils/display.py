@@ -57,7 +57,7 @@ def whos_to_dic(string):
 
     variables = {}
     for item in string.split('\n')[2:]:
-        tmp = [j for j in item.split(' ') if j is not '']
+        tmp = [j for j in item.split(' ') if j != '']
         if tmp:
             var_name = tmp[0]
             var_typ = tmp[1]
